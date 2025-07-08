@@ -25,7 +25,7 @@ namespace Squirrel
 
 	namespace Impl
 	{
-		constexpr uint32 SquirrelNoise5(int32& Position, const uint32 Seed)
+		uint32 SquirrelNoise5(int32& Position, const uint32 Seed)
 		{
 			return ::SquirrelNoise5(Position++, Seed);
 		}
@@ -82,12 +82,12 @@ namespace Squirrel
 		GWorldSeed = Seed;
 	}
 
-	constexpr int32 NextInt32(FSquirrelState& State, const int32 Max)
+	int32 NextInt32(FSquirrelState& State, const int32 Max)
 	{
 		return Max > 0 ? FMath::Min(FMath::TruncToInt(NextReal(State) * static_cast<double>(Max)), Max - 1) : 0;
 	}
 
-	constexpr int32 NextInt32InRange(FSquirrelState& State, const int32 Min, const int32 Max)
+	int32 NextInt32InRange(FSquirrelState& State, const int32 Min, const int32 Max)
     {
 		// @todo Min and Max must only cover *half* the int32 range, or it will cause an overflow in (Max - Min)
 		// look into alternate ways to generate random values that don't have this limit
@@ -96,12 +96,12 @@ namespace Squirrel
 		return Min + NextInt32(State, Range);
     }
 
-	constexpr double NextReal(FSquirrelState& State)
+	double NextReal(FSquirrelState& State)
 	{
 		return Get1dNoiseZeroToOne(State.Position++, GWorldSeed);
 	}
 
-	constexpr double NextRealInRange(FSquirrelState& State, const double Min, const double Max)
+	double NextRealInRange(FSquirrelState& State, const double Min, const double Max)
 	{
 		// @todo Min and Max must only cover *half* the double range, or it will cause an overflow in (Max - Min)
 		// look into alternate ways to generate random values that don't have this limit
@@ -109,20 +109,19 @@ namespace Squirrel
 		return Min + (Max - Min) * NextReal(State);
 	}
 
-	constexpr bool RollChance(FSquirrelState& State, double& Roll, const double Chance, const double RollModifier)
+	bool RollChance(FSquirrelState& State, double& Roll, const double Chance, const double RollModifier)
 	{
 		if (ensure((Chance >= 0.0) && (Chance <= 100.0)) ||
 			ensure((RollModifier >= -100.0) && (RollModifier <= 100.0)))
 		{
-			// @todo log is broken with constexpr. fix/replace later
-			//UE_LOG(LogSquirrel, Warning, TEXT("Bad inputs passed to USquirrel::RollChance - Chance: %f, Modifier: %f"), Chance, RollModifier);
+			UE_LOG(LogSquirrel, Warning, TEXT("Bad inputs passed to USquirrel::RollChance - Chance: %f, Modifier: %f"), Chance, RollModifier);
 		}
 
 		Roll = NextRealInRange(State, 0.0, 100.0 - RollModifier) + RollModifier;
 		return Roll >= Chance;
 	}
 
-	constexpr int32 RoundWithWeightByFraction(FSquirrelState& State, const double Value)
+	int32 RoundWithWeightByFraction(FSquirrelState& State, const double Value)
 	{
 		const double Whole = Math::SqFloor(Value);
 		const double Remainder = Value - Whole;
